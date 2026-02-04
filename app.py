@@ -129,7 +129,13 @@ if uploaded_file:
     # -------------------- Chemistry --------------------
 
     crea = find(r"CREATININA\s+([\d\.]+)", text)
-    vfg = find(r"VFG.*?MDRD.*?([\d]+(?:\.[\d]+)?)", text)
+    # VFG line often looks like: "VFG: MDRD-4-IDMS 82.9 mL/min/1.73m2"
+    # Avoid capturing the "4" in "MDRD-4-IDMS" by anchoring the number after "IDMS".
+    vfg = (
+        find(r"VFG\s*:\s*MDRD\s*[-–]?\s*4\s*[-–]?\s*IDMS\s+([\d]+(?:\.[\d]+)?)", text)
+        or find(r"VFG\s*:\s*MDRD[\s\S]*?IDMS\s+([\d]+(?:\.[\d]+)?)", text)
+        or find(r"VFG[\s\S]*?MDRD[\s\S]*?([\d]+(?:\.[\d]+)?)\s*mL/min", text)
+    )
     bun = find(r"NITROGENO UREICO\s+([\d\.]+)", text)
     urea = find(r"UREMIA\s+([\d\.]+)", text)
     au = find(r"ACIDO URICO\s+([\d\.]+)", text)
