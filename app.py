@@ -182,12 +182,15 @@ if uploaded_file:
 
     # -------------------- Hemogram --------------------
 
-    _hb_raw = find(r"HEMOGLOBINA\s+([\d]+(?:[.,]\d+)?)", text)
+    # Allow optional flag letter (e.g. "i", "h", "l") between label and number
+    _hb_raw = find(r"HEMOGLOBINA\s+(?:\w\s+)?([\d]+(?:[.,]\d+)?)", text)
     hb = _hb_raw.replace(",", ".") if _hb_raw else None
-    _hcto_raw = find(r"HEMATOCRITO\s+([\d]+(?:[.,]\d+)?)", text)
+    _hcto_raw = find(r"HEMATOCRITO\s+(?:\w\s+)?([\d]+(?:[.,]\d+)?)", text)
     hcto = _hcto_raw.replace(",", ".") if _hcto_raw else None
-    vcm = find(r"V\.?C\.?M\.?\s+([\d\.]+)", text)
-    chcm = find(r"C\.?H\.?C\.?M\.?\s+([\d\.]+)", text)
+    _vcm_raw = find(r"V\.?C\.?M\.?\s+(?:\w\s+)?([\d]+(?:[.,]\d+)?)", text)
+    vcm = _vcm_raw.replace(",", ".") if _vcm_raw else None
+    _chcm_raw = find(r"C\.?H\.?C\.?M\.?\s+(?:\w\s+)?([\d]+(?:[.,]\d+)?)", text)
+    chcm = _chcm_raw.replace(",", ".") if _chcm_raw else None
     gb = find(r"RECUENTO.*?LEUCOCITOS\s+([\d\.]+)", text, re.DOTALL | re.IGNORECASE)
     # Allow stray chars between PLAQUETAS and number (e.g. "RECUENTO PLAQUETAS i 128")
     plq = find(r"RECUENTO.*?PLAQUETAS\s+(?:[^\d\n]*?\s+)*?([\d\.]+)", text, re.DOTALL | re.IGNORECASE)
@@ -195,7 +198,8 @@ if uploaded_file:
         plq = find(r"PLAQUETAS\s+(?:[^\d\n]*?\s+)*?([\d\.]+)", text, re.IGNORECASE)
     if not plq:
         plq = find(r"PLAQUETAS\s+([\d\.]+)\s*(?:/\s*μL|K|/\s*L|G/L)?", text)
-    vhs = find(r"V\.?H\.?S\.?\s+([\d\.]+)", text)
+    _vhs_raw = find(r"V\.?H\.?S\.?\s+(?:\w\s+)?([\d]+(?:[.,]\d+)?)", text)
+    vhs = _vhs_raw.replace(",", ".") if _vhs_raw else None
 
     # -------------------- Orina completa (only if ORINA COMPLETA is in the report) --------------------
     oc_section = extract_orina_section(text)
