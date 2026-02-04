@@ -182,8 +182,10 @@ if uploaded_file:
 
     # -------------------- Hemogram --------------------
 
-    hb = find(r"HEMOGLOBINA\s+([\d\.]+)", text)
-    hcto = find(r"HEMATOCRITO\s+([\d\.]+)", text)
+    _hb_raw = find(r"HEMOGLOBINA\s+([\d]+(?:[.,]\d+)?)", text)
+    hb = _hb_raw.replace(",", ".") if _hb_raw else None
+    _hcto_raw = find(r"HEMATOCRITO\s+([\d]+(?:[.,]\d+)?)", text)
+    hcto = _hcto_raw.replace(",", ".") if _hcto_raw else None
     vcm = find(r"V\.?C\.?M\.?\s+([\d\.]+)", text)
     chcm = find(r"C\.?H\.?C\.?M\.?\s+([\d\.]+)", text)
     gb = find(r"RECUENTO.*?LEUCOCITOS\s+([\d\.]+)", text, re.DOTALL | re.IGNORECASE)
@@ -278,7 +280,7 @@ if uploaded_file:
     hemogram_present = any([hb, hcto, gb, plq, vhs, morph_roja, morph_blanca, morph_plaq])
 
     def is_normal(val):
-        return val and val.strip().lower() == "normales"
+        return val and val.strip().lower() in ("normal", "normales")
 
     # Frotis: "Normal" only if all three are "Normales"; otherwise abnormal result(s) with section prefix (GR, GB, PLQ)
     frotis_parts = []
@@ -298,6 +300,12 @@ if uploaded_file:
             frotis = "Normal"
     elif frotis_parts:
         frotis = "; ".join(frotis_parts)
+    elif morph_roja or morph_blanca or morph_plaq:
+        # At least one morphology extracted and no abnormal parts -> all extracted are normal
+        if all(is_normal(m) for m in (morph_roja, morph_blanca, morph_plaq) if m is not None):
+            frotis = "Normal"
+        else:
+            frotis = None
     else:
         frotis = None
 
