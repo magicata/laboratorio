@@ -361,7 +361,7 @@ if uploaded_file:
             hemo_t.append(f"GB {gb_val}")
         if plq:
             plq_abn = float(plq) < 150 or float(plq) > 450
-            hemo_h.append(f"PLQ {flag(plq, plq_abn)}K")
+            hemo_h.append(f"PLQ {flag(plq + 'K', plq_abn)}")
             hemo_t.append(f"PLQ {plq}K")
         if vhs:
             vhs_max = 30 if (sexo == "mujer" and edad is not None and edad >= 50) else 20
