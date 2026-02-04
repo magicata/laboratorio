@@ -129,7 +129,7 @@ if uploaded_file:
     # -------------------- Chemistry --------------------
 
     crea = find(r"CREATININA\s+([\d\.]+)", text)
-    vfg = find(r"VFG.*?MDRD.*?([\d]{2,3})", text)
+    vfg = find(r"VFG.*?MDRD.*?([\d]+(?:\.[\d]+)?)", text)
     bun = find(r"NITROGENO UREICO\s+([\d\.]+)", text)
     urea = find(r"UREMIA\s+([\d\.]+)", text)
     au = find(r"ACIDO URICO\s+([\d\.]+)", text)
@@ -291,7 +291,10 @@ if uploaded_file:
 
     renal_h, renal_t = [], []
     if crea: renal_h.append(f"Crea {crea}"); renal_t.append(f"Crea {crea}")
-    if vfg: renal_h.append(f"VFG {flag(vfg, abnormal_numeric(vfg, low=60))}"); renal_t.append(f"VFG {vfg}")
+    if vfg:
+        vfg_d = trim_decimal_zero(vfg)
+        renal_h.append(f"VFG {flag(vfg_d, abnormal_numeric(vfg, low=60))}")
+        renal_t.append(f"VFG {vfg_d}")
     if bun: renal_h.append(f"BUN {flag(bun, abnormal_numeric(bun,8,25))}"); renal_t.append(f"BUN {bun}")
     if urea: renal_h.append(f"Urea {flag(urea, abnormal_numeric(urea,21,49))}"); renal_t.append(f"Urea {urea}")
     if au: renal_h.append(f"AU {flag(au, abnormal_numeric(au, high=AU_MAX))}"); renal_t.append(f"AU {au}")
@@ -393,8 +396,8 @@ if uploaded_file:
         lip_t.append(f"HDL {hdl}")
 
     if tg:
-        lip_h.append(f"TG {flag(tg, abnormal_numeric(tg, high=150))}")
-        lip_t.append(f"TG {tg}")
+        lip_h.append(f"TGC {flag(tg, abnormal_numeric(tg, high=150))}")
+        lip_t.append(f"TGC {tg}")
 
     if lip_h:
         add(" ".join(lip_h), " ".join(lip_t))
