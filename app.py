@@ -336,24 +336,50 @@ if uploaded_file:
 
     # -------- Orina --------
 
+    def oc_prot_negativo(val):
+        if val is None:
+            return False
+        if is_number(val):
+            return float(str(val).replace(",", ".")) == 0
+        return str(val).strip().upper() == "NEGATIVO"
+
+    def oc_glu_negativo(val):
+        if val is None:
+            return False
+        if is_number(val):
+            return float(str(val).replace(",", ".")) == 0
+        return str(val).strip().upper() == "NEGATIVO"
+
+    oc_normal = (
+        oc_gb is not None and oc_gb in ("0-3", "<3")
+        and oc_gr is not None and oc_gr in ("0-3", "<3")
+        and oc_nit is not None and str(oc_nit).strip().upper() == "NEGATIVO"
+        and oc_prot_negativo(oc_prot)
+        and oc_glu_negativo(oc_glu)
+    )
+
     oc_h, oc_t = [], []
-    if oc_gr:
-        oc_h.append(f"GR {flag(oc_gr, oc_gr not in ['0-3', '<3'])}")
-        oc_t.append(f"GR {oc_gr}")
-    if oc_gb:
-        oc_h.append(f"GB {flag(oc_gb, oc_gb not in ['0-3', '<3'])}")
-        oc_t.append(f"GB {oc_gb}")
-    if oc_bact: oc_h.append(f"Bacterias {oc_bact}"); oc_t.append(f"Bacterias {oc_bact}")
-    if oc_nit: oc_h.append(f"Nitritos {flag(oc_nit, abnormal_text(oc_nit))}"); oc_t.append(f"Nitritos {oc_nit}")
-    if oc_bili == "POSITIVO": oc_h.append(f"Bilirrubina {flag('POSITIVO',True)}"); oc_t.append("Bilirrubina POSITIVO")
-    if oc_prot:
-        prot_abn = abnormal_text(oc_prot) if not is_number(oc_prot) else float(str(oc_prot).replace(",", ".")) > 0
-        oc_h.append(f"Proteinas {flag(oc_prot, prot_abn)}")
-        oc_t.append(f"Proteinas {oc_prot}")
-    if oc_glu:
-        glu_abn = abnormal_text(oc_glu) if not is_number(oc_glu) else float(str(oc_glu).replace(",", ".")) > 0
-        oc_h.append(f"Glucosa {flag(oc_glu, glu_abn)}")
-        oc_t.append(f"Glucosa {oc_glu}")
+    if oc_normal:
+        oc_h.append("Normal")
+        oc_t.append("Normal")
+    else:
+        if oc_gr:
+            oc_h.append(f"GR {flag(oc_gr, oc_gr not in ['0-3', '<3'])}")
+            oc_t.append(f"GR {oc_gr}")
+        if oc_gb:
+            oc_h.append(f"GB {flag(oc_gb, oc_gb not in ['0-3', '<3'])}")
+            oc_t.append(f"GB {oc_gb}")
+        if oc_bact: oc_h.append(f"Bacterias {oc_bact}"); oc_t.append(f"Bacterias {oc_bact}")
+        if oc_nit: oc_h.append(f"Nitritos {flag(oc_nit, abnormal_text(oc_nit))}"); oc_t.append(f"Nitritos {oc_nit}")
+        if oc_bili == "POSITIVO": oc_h.append(f"Bilirrubina {flag('POSITIVO',True)}"); oc_t.append("Bilirrubina POSITIVO")
+        if oc_prot:
+            prot_abn = abnormal_text(oc_prot) if not is_number(oc_prot) else float(str(oc_prot).replace(",", ".")) > 0
+            oc_h.append(f"Proteinas {flag(oc_prot, prot_abn)}")
+            oc_t.append(f"Proteinas {oc_prot}")
+        if oc_glu:
+            glu_abn = abnormal_text(oc_glu) if not is_number(oc_glu) else float(str(oc_glu).replace(",", ".")) > 0
+            oc_h.append(f"Glucosa {flag(oc_glu, glu_abn)}")
+            oc_t.append(f"Glucosa {oc_glu}")
 
     if oc_h:
         add("OC " + " ".join(oc_h), "OC " + " ".join(oc_t))
