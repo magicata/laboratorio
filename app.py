@@ -333,7 +333,7 @@ if uploaded_file:
             hemo_h.append(f"VHS {flag(vhs, vhs_abn)}")
             hemo_t.append(f"VHS {vhs}")
         if frotis:
-            hemo_h.append(f"Frotis {frotis}")
+            hemo_h.append(f"Frotis {flag(frotis, frotis != 'Normal')}")
             hemo_t.append(f"Frotis {frotis}")
 
         add(" ".join(hemo_h), " ".join(hemo_t))
@@ -375,3 +375,4 @@ if uploaded_file:
         st.markdown(line, unsafe_allow_html=True)
 
     st.text_area("📋 Copiar resultado", "\n".join(text_out), height=240)
+
