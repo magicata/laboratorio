@@ -21,16 +21,16 @@ def find(pattern, text, flags=re.IGNORECASE):
     return m.group(1).strip() if m else None
 
 def extract_urocultivo_result(text):
-    """Extract UROCULTIVO result text (single or multiline) until next section or double newline."""
+    """Extract only the UROCULTIVO result, stopping before Nota, Muestra, Examen ejecutado, lab/name lines, etc."""
     m = re.search(
-        r"UROCULTIVO\s*[:\s]*([\s\S]+?)(?=\n\s*\n|PERFIL\s+LIPIDICO|HEMOGLOBINA\s+GLICADA|CREATININA\s+[\d]|BILIRRUBINA\s+TOTAL|Muestra\s*:\s*SANGRE|Nº\s+Orden|\Z)",
+        r"UROCULTIVO\s*[:\s]*([\s\S]+?)(?=\n\s*\n|Nota\s*:|Muestra\s*:|Examen\s+ejecutado|Director\s+T[eé]cnico|LABORATORIO\s+CL[IÍ]NICO|Nombre\s*:|PERFIL\s+LIPIDICO|HEMOGLOBINA\s+GLICADA|CREATININA\s+[\d]|BILIRRUBINA\s+TOTAL|Nº\s+Orden|\Z)",
         text,
         re.IGNORECASE,
     )
     if not m:
         return None
     result = m.group(1).strip()
-    result = re.sub(r"\s+", " ", result)  # collapse whitespace to single space
+    result = re.sub(r"\s+", " ", result)
     return result if result else None
 
 def extract_orina_section(text):
