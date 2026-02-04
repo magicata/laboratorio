@@ -88,6 +88,7 @@ def trim_decimal_zero(val):
 # -------------------- UI --------------------
 
 st.title("🧪 Resumen Clínico de Laboratorio")
+st.caption("Esta herramienta busca facilitar la transcripción de exámenes de laboratorio, mas no reemplaza la interpretación médica del archivo original. Todos los resultados deben ser revisados manualmente por un profesional.")
 
 riesgo_cv = st.radio(
     "Riesgo Cardiovascular",
