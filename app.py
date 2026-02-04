@@ -124,6 +124,7 @@ if uploaded_file:
     TSH_MAX = 3 if edad and edad <= 65 else 6
     LDL_MAX = 70 if riesgo_cv == "alto" else 100 if riesgo_cv == "medio" else 130
     HB_MIN = 13 if sexo == "hombre" else 12 if sexo == "mujer" else None
+    AU_MAX = 7 if sexo == "hombre" else 6 if sexo == "mujer" else 7
 
     # -------------------- Chemistry --------------------
 
@@ -293,7 +294,7 @@ if uploaded_file:
     if vfg: renal_h.append(f"VFG {flag(vfg, abnormal_numeric(vfg, low=60))}"); renal_t.append(f"VFG {vfg}")
     if bun: renal_h.append(f"BUN {flag(bun, abnormal_numeric(bun,8,25))}"); renal_t.append(f"BUN {bun}")
     if urea: renal_h.append(f"Urea {flag(urea, abnormal_numeric(urea,21,49))}"); renal_t.append(f"Urea {urea}")
-    if au: renal_h.append(f"AU {flag(au, abnormal_numeric(au,2.3,6.1))}"); renal_t.append(f"AU {au}")
+    if au: renal_h.append(f"AU {flag(au, abnormal_numeric(au, high=AU_MAX))}"); renal_t.append(f"AU {au}")
 
     if na and k and cl:
         na_d, k_d, cl_d = trim_decimal_zero(na), trim_decimal_zero(k), trim_decimal_zero(cl)
