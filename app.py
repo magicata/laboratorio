@@ -411,10 +411,10 @@ if uploaded_file:
         hep_h.append(f"BI {flag(bi, abnormal_numeric(bi, high=1))}")
         hep_t.append(f"BI {bi}")
     if got:
-        hep_h.append(f"GOT {flag(got, abnormal_numeric(got, low=9, high=25))}")
+        hep_h.append(f"GOT {flag(got, abnormal_numeric(got, low=10, high=40))}")
         hep_t.append(f"GOT {got}")
     if gpt:
-        hep_h.append(f"GPT {flag(gpt, abnormal_numeric(gpt, low=7, high=30))}")
+        hep_h.append(f"GPT {flag(gpt, abnormal_numeric(gpt, low=10, high=55))}")
         hep_t.append(f"GPT {gpt}")
     if ggt:
         hep_h.append(f"GGT {flag(ggt, abnormal_numeric(ggt, high=40))}")
