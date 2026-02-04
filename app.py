@@ -321,7 +321,9 @@ if uploaded_file:
         add("OC " + " ".join(oc_h), "OC " + " ".join(oc_t))
 
     if uc_result:
-        add(f"UC {uc_result}", f"UC {uc_result}")
+        uc_only = re.sub(r"^UROCULTIVO\s*", "", uc_result, flags=re.IGNORECASE).strip()
+        if uc_only:
+            add(f"UC {uc_only}", f"UC {uc_only}")
 
     # -------- Metabolic --------
 
