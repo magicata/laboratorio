@@ -20,6 +20,19 @@ def find(pattern, text, flags=re.IGNORECASE):
     m = re.search(pattern, text, flags)
     return m.group(1).strip() if m else None
 
+def extract_urocultivo_result(text):
+    """Extract UROCULTIVO result text (single or multiline) until next section or double newline."""
+    m = re.search(
+        r"UROCULTIVO\s*[:\s]*([\s\S]+?)(?=\n\s*\n|PERFIL\s+LIPIDICO|HEMOGLOBINA\s+GLICADA|CREATININA\s+[\d]|BILIRRUBINA\s+TOTAL|Muestra\s*:\s*SANGRE|Nº\s+Orden|\Z)",
+        text,
+        re.IGNORECASE,
+    )
+    if not m:
+        return None
+    result = m.group(1).strip()
+    result = re.sub(r"\s+", " ", result)  # collapse whitespace to single space
+    return result if result else None
+
 def extract_orina_section(text):
     """Only parse orina fields from the ORINA COMPLETA section to avoid picking ERITROCITOS from hemogram etc."""
     m = re.search(r"ORINA\s+COMPLETA", text, re.IGNORECASE)
@@ -140,6 +153,16 @@ if uploaded_file:
     hdl = find(r"(?:HDL|COLESTEROL HDL|C[-\s]?HDL).*?([\d\.]+)", text)
     tg = find(r"TRIGLICERIDOS\s+([\d\.]+)", text)
 
+    # -------------------- Hepatic (perfil hepático) --------------------
+
+    bt = find(r"BILIRRUBINA\s+TOTAL\s+([\d\.]+)", text)
+    bd = find(r"BILIRRUBINA\s+DIRECTA\s+([\d\.]+)", text)
+    bi = find(r"BILIRRUBINA\s+INDIRECTA\s+([\d\.]+)", text)
+    got = find(r"TRANSAMINASA\s+OXALOACETICA(?:\s+\(GOT\/AST\))?\s+([\d\.]+)", text) or find(r"(?:GOT|AST)\s+([\d\.]+)", text)
+    gpt = find(r"TRANSAMINASA\s+PIRUVICA(?:\s+\(GPT\/ALT\))?\s+([\d\.]+)", text) or find(r"(?:GPT|ALT)\s+([\d\.]+)", text)
+    ggt = find(r"GAMMA\s+GLUTAMIL\s+TRASPEPTIDASA(?:\s+\(GGT\))?\s+([\d\.]+)", text) or find(r"GGT\s+([\d\.]+)", text)
+    fa = find(r"FOSFATASA\s+ALCALINA\s+([\d\.]+)", text)
+
     # -------------------- Hemogram --------------------
 
     hb = find(r"HEMOGLOBINA\s+([\d\.]+)", text)
@@ -174,6 +197,10 @@ if uploaded_file:
         oc_bili = find(r"BILIRRUBINA\s+(POSITIVO|NEGATIVO)", oc_section)
         oc_prot = find(r"PROTEINAS\s+(POSITIVO|NEGATIVO)", oc_section)
         oc_glu = find(r"GLUCOSA\s+(POSITIVO|NEGATIVO)", oc_section)
+
+    # -------------------- Urocultivo --------------------
+
+    uc_result = extract_urocultivo_result(text)
 
     # -------------------- Morphology / Frotis --------------------
     # MORFOLOGIA SERIE ROJA, MORFOLOGIA SERIE BLANCA, MORFOLOGIA DE PLAQUETAS (or PLAQUETARIA)
@@ -293,6 +320,9 @@ if uploaded_file:
     if oc_h:
         add("OC " + " ".join(oc_h), "OC " + " ".join(oc_t))
 
+    if uc_result:
+        add(f"UC {uc_result}", f"UC {uc_result}")
+
     # -------- Metabolic --------
 
     meta_h, meta_t = [], []
@@ -362,6 +392,33 @@ if uploaded_file:
     if lip_h:
         add(" ".join(lip_h), " ".join(lip_t))
 
+    # -------- Hepatic (after lipids) --------
+
+    hep_h, hep_t = [], []
+    if bt:
+        hep_h.append(f"BT {flag(bt, abnormal_numeric(bt, high=1.3))}")
+        hep_t.append(f"BT {bt}")
+    if bd:
+        hep_h.append(f"BD {flag(bd, abnormal_numeric(bd, high=0.3))}")
+        hep_t.append(f"BD {bd}")
+    if bi:
+        hep_h.append(f"BI {flag(bi, abnormal_numeric(bi, high=1))}")
+        hep_t.append(f"BI {bi}")
+    if got:
+        hep_h.append(f"GOT {flag(got, abnormal_numeric(got, low=9, high=25))}")
+        hep_t.append(f"GOT {got}")
+    if gpt:
+        hep_h.append(f"GPT {flag(gpt, abnormal_numeric(gpt, low=7, high=30))}")
+        hep_t.append(f"GPT {gpt}")
+    if ggt:
+        hep_h.append(f"GGT {flag(ggt, abnormal_numeric(ggt, high=40))}")
+        hep_t.append(f"GGT {ggt}")
+    if fa:
+        hep_h.append(f"FA {flag(fa, abnormal_numeric(fa, low=30, high=100))}")
+        hep_t.append(f"FA {fa}")
+    if hep_h:
+        add(" ".join(hep_h), " ".join(hep_t))
+
     # Prepend date (DD/MM/YY) to first line of output when present
     if fecha and html:
         html[0] = f"<b>{fecha}:</b> " + html[0]
@@ -375,4 +432,3 @@ if uploaded_file:
         st.markdown(line, unsafe_allow_html=True)
 
     st.text_area("📋 Copiar resultado", "\n".join(text_out), height=240)
-
