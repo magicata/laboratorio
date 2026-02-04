@@ -171,7 +171,10 @@ if uploaded_file:
     vcm = find(r"V\.?C\.?M\.?\s+([\d\.]+)", text)
     chcm = find(r"C\.?H\.?C\.?M\.?\s+([\d\.]+)", text)
     gb = find(r"RECUENTO.*?LEUCOCITOS\s+([\d\.]+)", text, re.DOTALL | re.IGNORECASE)
-    plq = find(r"RECUENTO.*?PLAQUETAS\s+([\d\.]+)", text, re.DOTALL | re.IGNORECASE)
+    # Allow stray chars between PLAQUETAS and number (e.g. "RECUENTO PLAQUETAS i 128")
+    plq = find(r"RECUENTO.*?PLAQUETAS\s+(?:[^\d\n]*?\s+)*?([\d\.]+)", text, re.DOTALL | re.IGNORECASE)
+    if not plq:
+        plq = find(r"PLAQUETAS\s+(?:[^\d\n]*?\s+)*?([\d\.]+)", text, re.IGNORECASE)
     if not plq:
         plq = find(r"PLAQUETAS\s+([\d\.]+)\s*(?:/\s*μL|K|/\s*L|G/L)?", text)
     vhs = find(r"V\.?H\.?S\.?\s+([\d\.]+)", text)
