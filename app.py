@@ -85,6 +85,15 @@ def trim_decimal_zero(val):
     except ValueError:
         return val
 
+def is_number(val):
+    if val is None:
+        return False
+    try:
+        float(str(val).replace(",", "."))
+        return True
+    except ValueError:
+        return False
+
 # -------------------- UI --------------------
 
 st.title("🧪 Resumen Clínico de Laboratorio")
@@ -206,8 +215,17 @@ if uploaded_file:
             oc_bact = None
         oc_nit = find(r"NITRITOS\s+(POSITIVO|NEGATIVO)", oc_section)
         oc_bili = find(r"BILIRRUBINA\s+(POSITIVO|NEGATIVO)", oc_section)
-        oc_prot = find(r"PROTEINAS\s+(POSITIVO|NEGATIVO)", oc_section)
-        oc_glu = find(r"GLUCOSA\s+(POSITIVO|NEGATIVO)", oc_section)
+        # Some reports show numeric values (e.g. "15 PROTEINAS", "250 GLUCOSA (O)") instead of POSITIVO/NEGATIVO.
+        oc_prot = (
+            find(r"PROTEINAS\s+(POSITIVO|NEGATIVO)", oc_section)
+            or find(r"(\d+(?:[.,]\d+)?)\s+PROTEINAS", oc_section)
+            or find(r"PROTEINAS\s+(\d+(?:[.,]\d+)?)", oc_section)
+        )
+        oc_glu = (
+            find(r"GLUCOSA(?:\s*\(O\))?\s+(POSITIVO|NEGATIVO)", oc_section)
+            or find(r"(\d+(?:[.,]\d+)?)\s+GLUCOSA(?:\s*\(O\))?", oc_section)
+            or find(r"GLUCOSA(?:\s*\(O\))?\s+(\d+(?:[.,]\d+)?)", oc_section)
+        )
 
     # -------------------- Urocultivo --------------------
 
@@ -328,8 +346,14 @@ if uploaded_file:
     if oc_bact: oc_h.append(f"Bacterias {oc_bact}"); oc_t.append(f"Bacterias {oc_bact}")
     if oc_nit: oc_h.append(f"Nitritos {flag(oc_nit, abnormal_text(oc_nit))}"); oc_t.append(f"Nitritos {oc_nit}")
     if oc_bili == "POSITIVO": oc_h.append(f"Bilirrubina {flag('POSITIVO',True)}"); oc_t.append("Bilirrubina POSITIVO")
-    if oc_prot: oc_h.append(f"Proteinas {flag(oc_prot, abnormal_text(oc_prot))}"); oc_t.append(f"Proteinas {oc_prot}")
-    if oc_glu: oc_h.append(f"Glucosa {flag(oc_glu, abnormal_text(oc_glu))}"); oc_t.append(f"Glucosa {oc_glu}")
+    if oc_prot:
+        prot_abn = abnormal_text(oc_prot) if not is_number(oc_prot) else float(str(oc_prot).replace(",", ".")) > 0
+        oc_h.append(f"Proteinas {flag(oc_prot, prot_abn)}")
+        oc_t.append(f"Proteinas {oc_prot}")
+    if oc_glu:
+        glu_abn = abnormal_text(oc_glu) if not is_number(oc_glu) else float(str(oc_glu).replace(",", ".")) > 0
+        oc_h.append(f"Glucosa {flag(oc_glu, glu_abn)}")
+        oc_t.append(f"Glucosa {oc_glu}")
 
     if oc_h:
         add("OC " + " ".join(oc_h), "OC " + " ".join(oc_t))
@@ -392,14 +416,14 @@ if uploaded_file:
         lip_h.append(f"CT {flag(col_total, abnormal_numeric(col_total, high=200))}")
         lip_t.append(f"CT {col_total}")
 
-    if ldl:
-        lip_h.append(f"LDL {flag(ldl, abnormal_numeric(ldl, high=LDL_MAX))}")
-        lip_t.append(f"LDL {ldl}")
-
     if hdl:
         HDL_MIN = 50 if sexo == "mujer" else 40
         lip_h.append(f"HDL {flag(hdl, abnormal_numeric(hdl, low=HDL_MIN))}")
         lip_t.append(f"HDL {hdl}")
+
+    if ldl:
+        lip_h.append(f"LDL {flag(ldl, abnormal_numeric(ldl, high=LDL_MAX))}")
+        lip_t.append(f"LDL {ldl}")
 
     if tg:
         lip_h.append(f"TGC {flag(tg, abnormal_numeric(tg, high=150))}")
